@@ -25,9 +25,14 @@ font = pygame.font.SysFont('arial', 20)
 """---------------------------------PHẦN UI---------------------------------"""
 buttons = [
     {"rect": pygame.Rect(820, 50, 100, 40), "text": "2D mode"},
-    {"rect": pygame.Rect(820, 100, 100, 40), "text": "3D mode"},
-    {"rect": pygame.Rect(820, 150, 100, 40), "text": "CLEAR"},
-    {"rect": pygame.Rect(820, 200, 100, 40), "text": "OK"},
+    {"rect": pygame.Rect(950, 50, 100, 40), "text": "Ve hinh ___"},
+    {"rect": pygame.Rect(950, 100, 100, 40), "text": "Ve hinh ___"},
+    {"rect": pygame.Rect(820, 200, 100, 40), "text": "3D mode"},
+    {"rect": pygame.Rect(950, 200, 100, 40), "text": "Ve hinh___"},
+    {"rect": pygame.Rect(950, 250, 100, 40), "text": "Ve hinh___"},
+    {"rect": pygame.Rect(820, 300, 120, 40), "text": "XOÁ DU LIEU"},
+    {"rect": pygame.Rect(1000, 550, 100, 40), "text": "XÓA"},
+    {"rect": pygame.Rect(1000, 500, 100, 40), "text": "NHAP"},
 ]
 input_boxes = [
     {"rect": pygame.Rect(880, 500, 100, 30), "label": "X:", "value": "", "active": False},
@@ -53,12 +58,23 @@ def draw_UI (screen,font):
         label_surface = font.render(box["label"], True, (0, 0, 0))
         screen.blit(label_surface, (box["rect"].x - 25, box["rect"].y + 5))
         
-        
+def update_scene ():
+    global current_mode
+    if current_mode=='2D mode':
+        draw_grid(screen, UNIT_SIZE, draw_area)
+        draw_axes_2d(screen, draw_area)
+        for dpoint in inputpoint_data:
+            putPixel(dpoint[0])
+            putPixel(dpoint[1])
+        """======================================HÀM VẼ HÌNH 2D GỌI Ở ĐÂY======================================"""
+    elif current_mode=='3D mode':
+        draw_3d_axes(screen)
+        """======================================GỌI HÀM VẼ HÌNH 3D Ở ĐÂY======================================"""
 
 
 """---------------------------------PHẦN HÀM CHUNG---------------------------------"""
 def set_mode(mode):
-    """Chuyển đổi giữa 2D mode và 3D mode."""
+    """Chuyển đổi giữa 2D mode và 3D mode"""
     global current_mode
     if mode in ['2D mode','3D mode']:
         current_mode = mode
@@ -67,14 +83,7 @@ def set_mode(mode):
         return
     print(f"Chuyển sang {mode}")
     
-def update_scene ():
-    global current_mode
-    if current_mode=='2D mode':
-        draw_grid(screen, UNIT_SIZE, draw_area)
-        draw_axes_2d(screen, draw_area)
-    elif current_mode=='3D mode':
-        draw_3d_axes(screen)
-        
+
 def putPixel(pos, color=BLACK):
     """nhập vào pos kiểu list hoặc tuple 2 phần tử (x,y)"""
     
@@ -82,11 +91,12 @@ def putPixel(pos, color=BLACK):
                    (pos[0] - UNIT_SIZE//2,
                     pos[1] - UNIT_SIZE//2,
                     UNIT_SIZE, UNIT_SIZE))
-    
+    """
     #Phần hiển thị tọa độ theo hệ tự vẽ để debug
     rel_pos=convert_pos(pos)
     coord_text = font.render(f"({rel_pos[0]}, {rel_pos[1]})", True, BLACK)
     screen.blit(coord_text, (pos[0] + UNIT_SIZE//2, pos[1]))
+    """
 
 def draw_grid(screen, grid_size, draw_area):
     for x in range(draw_area.x, draw_area.x + draw_area.width, grid_size): #grid size là step
@@ -153,6 +163,7 @@ def convert_pos(pos):
     rel_y = round((center_y - y) / UNIT_SIZE)  # Đảo y và làm tròn
     rel_pos = (rel_x, rel_y)
     return rel_pos
+
 def revert_pos(rel_pos):
     """Chuyển đổi từ tọa độ tự vẽ về tọa độ pygame"""
     center_x = draw_area.x + draw_area.width / 2
@@ -163,7 +174,7 @@ def revert_pos(rel_pos):
     return (x, y)
 
 def click_mouse_pos(pos, click_num=2):
-    
+    """LẤY vị trí click chuột cho vào inputpoint_dât"""
     global points, click_count
     rel_pos=convert_pos(pos)
     pos=revert_pos(rel_pos)
@@ -194,8 +205,13 @@ while (running):
                 if button["rect"].collidepoint(event.pos):
                     if button["text"] in ['2D mode','3D mode']:
                         set_mode(button["text"])
-                    if button["text"]=="CLEAR":
+                    if button["text"]=="CLEAR DATA":
                         inputpoint_data.clear()
+                        for box in input_boxes:
+                            box["value"] = ""
+                    if button["text"] == "CLEAR":
+                        for box in input_boxes:
+                            box["value"] = ""
                     if button["text"]=="OK":
                         if all(box["value"] for box in input_boxes[0:2]):
                             try:
@@ -212,9 +228,7 @@ while (running):
                                 print(points)
                             except ValueError:
                                 print ("Lỗi nhập liệu, vui lòng nhập lại")
-                    if button["text"] == "CLEAR":
-                        for box in input_boxes:
-                            box["value"] = ""
+                    
             for box in input_boxes:
                 box["active"]=False
                 if box["rect"].collidepoint(event.pos):
@@ -236,9 +250,7 @@ while (running):
             running=False
     
     update_scene()
-    for dpoint in inputpoint_data:
-        putPixel(dpoint[0])
-        putPixel(dpoint[1])
+    
     draw_UI(screen,font)
     
     
